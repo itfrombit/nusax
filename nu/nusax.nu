@@ -23,21 +23,25 @@
 (class NSObject
   (imethod (id) toXml is
     (self stringValue)))
+    
+(class NuSymbol
+  (imethod (id) toXml is
+    ((self stringValue) stringByReplacingOccurrencesOfString:":" withString:":")))
 
 (class NuCell
   (imethod (id) join is
     ((NSArray arrayWithList:self) join))
    
   (imethod (id) xmlAttr is
-    (" #{(first (first self))}=\"#{(second (first self))}\"#{((rest self) xmlAttr)}"))
+    (" #{((first (first self)) toXml)}=\"#{(second (first self))}\"#{((rest self) xmlAttr)}"))
   
   (imethod (id) toXml is
     (if (== (self length) 2)
-      (then "<#{(first self)}#{((second self) xmlAttr)}></#{(first self)}>")
+      (then "<#{((first self) toXml)}#{((second self) xmlAttr)}></#{((first self) toXml)}>")
       (else 
         (if (self 3)
-          (then "<#{(first self)}#{((second self) xmlAttr)}>#{(((rest (rest self)) map: (do (i) (i toXml))) join)}</#{(first self)}>")
-          (else "<#{(first self)}#{((second self) xmlAttr)}>#{((third self) toXml)}</#{(first self)}>"))))))
+          (then "<#{((first self) toXml)}#{((second self) xmlAttr)}>#{(((rest (rest self)) map: (do (i) (i toXml))) join)}</#{((first self) toXml)}>")
+          (else "<#{((first self) toXml)}#{((second self) xmlAttr)}>#{((third self) toXml)}</#{((first self) toXml)}>"))))))
 
 (class NSString
   (imethod (id) fromXml is

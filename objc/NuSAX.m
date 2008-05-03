@@ -16,6 +16,13 @@ limitations under the License.
 #import <Nu/Nu.h>
 #import "XMLUtilities.h"
 
+#define NAMESPACE_SEPARATOR @":"
+
+id symbolize(id string) {
+  return [[string stringByReplacingOccurrencesOfString:@":" withString:NAMESPACE_SEPARATOR] symbolValue]; 
+}
+    
+
 void NuSAXInit()
 {
     static initialized = 0;
@@ -165,7 +172,7 @@ startElementSAX(void *ctx,
   }
   NuSAX *currentReader = (NuSAX *)ctx;
   
-  id element = nustring(qualifiedName);
+  id element = nustring(qualifiedName); 
   [currentReader.processed addObject: element];
   [currentReader.processed addObject: _nunull()];
   
@@ -205,14 +212,14 @@ startElementSAX(void *ctx,
           localNameString = getQualifiedName(attributePrefix, localName);
           releaseLocalNameString = YES;
       } else {
-          localNameString = [[NSString alloc] initWithUTF8String:(const char *)localName];
+          localNameString = symbolize([[NSString alloc] initWithUTF8String:(const char *)localName]);
       }
       
       if (valueString) {
         id last = [currentReader.processed lastObject];
         [currentReader.processed removeLastObject];
         
-        last = _nucell(_nucell(nustring(localNameString), _nucell(nustring(valueString), _nunull())), last);
+        last = _nucell(_nucell(localNameString, _nucell(nustring(valueString), _nunull())), last);
         [currentReader.processed addObject: last]; 
       }
       
@@ -235,6 +242,12 @@ cellList(NSMutableArray *array, NSString *target, id cell) {
   id lastCell = [array lastObject];
   [array removeLastObject];
   if ([target isEqualToString: [lastCell stringValue]]) {
+    
+    lastCell = symbolize(lastCell);
+    
+
+    
+    
     return _nucell(lastCell, cell);
   } else {
     return cellList(array, target, _nucell(lastCell, cell));
