@@ -1,4 +1,5 @@
 (load "NuSAX")
+(load "NuSAX:nubility")
 
 (set path "http://github.com/api/v1/xml/deanmao/nusax/commits/master")
 
@@ -14,4 +15,4 @@
 (set info (parser parseXML:result parseError:nil))
 
 (puts "\n\nPARSED\n")
-(puts info)
+(puts (info nubile))

@@ -1,0 +1,32 @@
+(load "Nu:beautify")
+
+(class NuCell
+     (- (id) nubile is
+        ((NuBeautifier new) beautify:(self multilineStringValue)))
+     (- (id) multilineStringValue is
+        (set cursor self)
+        (set result (NSMutableString stringWithString:"("))
+        (set count 0)
+        (while (!= cursor nil)
+               (if (> count 0)
+                   (then (result appendString:" ")))
+               (set count (+ count 1))
+               (set item (cursor car))
+               (if (item isKindOfClass:NuCell)
+                   (then (if (> count 2) (result appendString:"\n"))
+                         (result appendString:(item multilineStringValue)))
+                   (else (if (!= item nil)
+                             (then (if (item respondsToSelector:"escapedStringRepresentation")
+                                       (then (result appendString:(item escapedStringRepresentation)))
+                                       (else (result appendString:(item description)))))
+                             (else (result appendString:"()")))))
+               (set cursor (cursor cdr))
+               ;; check for dotted pairs
+               (if (and (!= cursor nil) (not (cursor isKindOfClass:NuCell)))
+                   (result appendString:" . ")
+                   (if (cursor respondsToSelector:"escapedStringRepresentation")
+                       (then (result appendString:(cursor escapedStringRepresentation)))
+                       (else (result appendString:(cursor description))))
+                   (break)))
+        (result appendString:")")
+        result))
