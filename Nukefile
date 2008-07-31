@@ -9,9 +9,9 @@
                   (set PLATFORM "-isysroot /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.0.sdk")
                   (set @arch '("i386")))
       ("native"
-                  (set @cc "/Developer/usr/bin/gcc-4.2")
+                  (set @cc "/usr/bin/gcc")
                   (set PLATFORM "")
-                  (set @arch '("i386")))
+                  (set @arch '("i386" "ppc")))
       (else nil))
 
 (set @cflags "-I /usr/include/libxml2 -g -ObjC -Iinclude -std=gnu99 #{PLATFORM} -mmacosx-version-min=10.5")
@@ -32,6 +32,7 @@
 (set @framework "NuSAX")
 (set @framework_identifier "nu.programming.nusax")
 (set @framework_creator_code "????")
+(set @framework_install_path "@executbale_path/../Frameworks")
 
 (compilation-tasks)
 (framework-tasks)
@@ -48,6 +49,8 @@
 (task "default" => "framework")
 
 (task "clobber" => "clean" is
+      (SH "rm -rf build")
+      (SH "rm -rf #{@framework_dir}")
       (SH "rm -f example1"))
 
 (task "install" => "framework" is
