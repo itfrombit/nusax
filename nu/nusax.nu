@@ -10,6 +10,12 @@
 ;;   See the License for the specific language governing permissions and
 ;;   limitations under the License.
 
+(class NSString
+  (- (id) stringByReplacingOccurrencesOfString:(id) old withString:(id) new is
+     (set copy (NSMutableString stringWithString:self))
+     (copy replaceOccurrencesOfString:old withString:new options:nil range:(list 0 (self length)))
+     copy))
+
 (class NSArray
   (imethod (id) join is
     ((self select:(do (x) x)) componentsJoinedByString:"")))

@@ -32,7 +32,7 @@ void NuSAXInit()
     }
 }
 
-@interface NuSAX()
+@interface NuSAX(internal)
 
 static void startDocumentSAX (void * ctx);
 static void endDocumentSAX (void * ctx);
@@ -83,18 +83,27 @@ static xmlSAXHandler *simpleSAXHandler = &simpleSAXHandlerStruct;
 
 @implementation NuSAX
 
-@synthesize processed = _processed;
+// @synthesize processed = _processed;
+
+- (NSMutableArray *) processed {return _processed;}
+- (void) setProcessed:(NSMutableArray *) p {
+   [p retain];
+   [_processed release];
+   _processed = p;
+}
 
 + (void) load
 {
    NuSAXInit();
 }
 
+#define NSLocalizedFailureReasonErrorKey @"error"
+
 - (id) parseXML:(const char *)XMLString parseError:(NSError **)parseError {
   if (!XMLString) {
     return _nunull();
   }
-  self.processed = [[NSMutableArray alloc] initWithCapacity: 1];
+  [self setProcessed:[[NSMutableArray alloc] initWithCapacity: 1]];
 
   xmlParserCtxtPtr ctxt = xmlCreateDocParserCtxt((xmlChar*)XMLString);
 
@@ -103,7 +112,7 @@ static xmlSAXHandler *simpleSAXHandler = &simpleSAXHandlerStruct;
   if (parseResult != 0 && parseError) {
     *parseError = [NSError errorWithDomain:XMLParsingErrorDomainString code:0 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Parsing failed", NSLocalizedFailureReasonErrorKey, nil]]; 
   } else {
-    return [self.processed lastObject];
+    return [[self processed] lastObject];
   }
 
   xmlFreeParserCtxt(ctxt);
@@ -132,11 +141,11 @@ getQualifiedName (const xmlChar *prefix, const xmlChar *localName)
   int bufferSize = strlen((const char *)prefix) + strlen((const char *)localName) + 1 + 1; 
   char qualifiedNameBuffer[bufferSize];
 
-  strlcpy(qualifiedNameBuffer, (const char *)prefix, sizeof(qualifiedNameBuffer));
+  strncpy(qualifiedNameBuffer, (const char *)prefix, sizeof(qualifiedNameBuffer));
   const char *colon = ":";
-  strlcat(qualifiedNameBuffer, colon, sizeof(qualifiedNameBuffer));
+  strncat(qualifiedNameBuffer, colon, sizeof(qualifiedNameBuffer));
 
-  strlcat(qualifiedNameBuffer, (const char*)localName, sizeof(qualifiedNameBuffer));
+  strncat(qualifiedNameBuffer, (const char*)localName, sizeof(qualifiedNameBuffer));
   return [[NSString alloc] initWithUTF8String:qualifiedNameBuffer];
 }
 
@@ -173,11 +182,11 @@ startElementSAX(void *ctx,
   NuSAX *currentReader = (NuSAX *)ctx;
   
   id element = nustring(qualifiedName); 
-  [currentReader.processed addObject: element];
-  [currentReader.processed addObject: _nunull()];
+  [[currentReader processed] addObject: element];
+  [[currentReader processed] addObject: _nunull()];
   
   
-  NSUInteger attributeCounter, maxAttributes = nb_attributes * 5;
+  unsigned attributeCounter, maxAttributes = nb_attributes * 5;
   for (attributeCounter = 0; attributeCounter < maxAttributes; attributeCounter++) {
       NSString *localNameString = nil;
       NSString *prefixString = nil;
@@ -216,11 +225,11 @@ startElementSAX(void *ctx,
       }
       
       if (valueString) {
-        id last = [currentReader.processed lastObject];
-        [currentReader.processed removeLastObject];
+        id last = [[currentReader processed] lastObject];
+        [[currentReader processed] removeLastObject];
         
         last = _nucell(_nucell(localNameString, _nucell(nustring(valueString), _nunull())), last);
-        [currentReader.processed addObject: last]; 
+        [[currentReader processed] addObject: last]; 
       }
       
       if (releaseLocalNameString) {
@@ -263,10 +272,10 @@ endElementSAX (void *ctx, const xmlChar *localname, const xmlChar *prefix, const
     qualifiedElementName = getQualifiedName(prefix, localname);
   }
 
-  id lastCell = [currentReader.processed lastObject];
-  [currentReader.processed removeLastObject];
-  id x = cellList(currentReader.processed, qualifiedElementName, _nucell(lastCell, _nunull()));
-  [currentReader.processed addObject: x];
+  id lastCell = [[currentReader processed] lastObject];
+  [[currentReader processed] removeLastObject];
+  id x = cellList([currentReader processed], qualifiedElementName, _nucell(lastCell, _nunull()));
+  [[currentReader processed] addObject: x];
     
   if (qualifiedElementName) {
     [qualifiedElementName release];
@@ -277,12 +286,10 @@ static void
 charactersFoundSAX	(void * ctx, const xmlChar * ch, int len) {
   NuSAX *currentReader = (NuSAX *)ctx;
   
-  CFStringRef str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ch, len, kCFStringEncodingUTF8, false);
-  NSMutableString *string = [[NSMutableString alloc] initWithCapacity: 0];
-  [string appendString:(NSString *)str];
+  NSString *string = [[[NSString alloc] initWithBytes:ch length:len encoding:NSUTF8StringEncoding] autorelease];
   string = [string stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
   if ([[string stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]] length] > 0) {
-    [currentReader.processed addObject: nustring(string)];
+    [[currentReader processed] addObject: nustring(string)];
   }
 }
 

@@ -87,6 +87,7 @@ NSString *XMLParsingErrorDomainString = @"XMLParsingErrorDomain";
 //    void       *node;   /* the node in the tree */
 //};
 
+#define NSLocalizedFailureReasonErrorKey "error"
 
 + (NSError *)errorWithXMLError:(xmlError *)errorWithXMLError
 {

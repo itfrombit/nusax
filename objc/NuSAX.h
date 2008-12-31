@@ -21,7 +21,7 @@ limitations under the License.
   NSMutableArray *_processed;
 }
 
-@property (nonatomic, retain) NSMutableArray *processed;
+// @property (nonatomic, retain) NSMutableArray *processed;
 
 - (id) parseXML:(const char *)XMLString parseError:(NSError **)parseError;
 - (id) parseXMLFileAtURL:(NSURL *)URL parseError:(NSError **)error;
