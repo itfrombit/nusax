@@ -19,7 +19,7 @@
 (set @h_files	  (filelist "^objc/.*.h$"))
 (set @m_files     (filelist "^objc/.*.m$"))
 (set @nu_files 	  (filelist "^nu/.*nu$"))
-(set @frameworks  '("Cocoa" "Nu"))
+(set @frameworks  '("Foundation" "Nu"))
 (set @libs '("xml2"))
 
 (set @ldflags
